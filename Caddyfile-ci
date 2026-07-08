@@ -1,6 +1,0 @@
-# Caddy Config that simulate the nginx config on production
-
-:80 {
-    # all other request are forwarded to the backend
-    reverse_proxy http://nuxt:80
-}
