@@ -31,15 +31,6 @@ export default defineNuxtConfig({
   features: {
     inlineStyles: true
   },
-  nitro: {
-    compressPublicAssets: true,
-    storage: {
-      cache: {
-        driver: 'fs',
-        base: './.data/cache',
-      },
-    },
-  },
   image: {
     format: ['webp'],
     domains: ['odoo-community.org'],
@@ -123,25 +114,19 @@ export default defineNuxtConfig({
   routeRules: {
     '/': {
       ssr: true,
-      swr: 3600,
+
     },
     '/community': {
       ssr: true,
-      swr: 3600,
+
     },
     '/community/**': {
-      prerender: false,
       ssr: true,
-      swr: 3600,
+
     },
     '/modules/**': {
-      prerender: false,
+
       ssr: true,
-      swr: 3600,
-    },
-    '/modules': {
-      ssr: true,
-      swr: 3600,
     },
     '/module': {
       redirect: '/modules',
@@ -151,25 +136,20 @@ export default defineNuxtConfig({
     },
     '/categories': {
       ssr: true,
-      swr: 3600,
     },
     '/categories/**': {
       ssr: true,
-      swr: 3600,
     },
     '/sponsors': {
       ssr: true,
-      swr: 3600,
     },
     '/integrators': {
 
       ssr: true,
-      swr: 3600,
     },
     '/integrators/**': {
       prerender: false,
       ssr: true,
-      swr: 3600,
     },
     '/**': {
       ssr: true,
