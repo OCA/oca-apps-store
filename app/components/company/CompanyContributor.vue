@@ -1,6 +1,6 @@
 <template>
-  
   <SearchBase
+    v-model:page="page"
     v-model:sort-by="sortBy"
     :query="query"
     :facets="facets"
@@ -69,6 +69,8 @@
     <template #hit="{ hit: person, index, total }">
       <PersonHit :variant="displayMode" :person="person" />
     </template>
+   
+    
   </SearchBase>
 </template>
 <script setup lang="ts">
@@ -85,6 +87,7 @@ const searchTerms = ref('')
 const searchTermsDebounced = useDebounce(searchTerms, 500)
 const page = ref(1)
 const perPage = 12
+
 const displayMode = ref<'grid' | 'list'>('grid')
 
 const personService = useService('persons')
@@ -144,12 +147,4 @@ const ui = computed(() => {
         : 'gap-3 sm:gap-5',
   }
 })
-
-
-watch(
-  () => searchTermsDebounced.value,
-  (newSearchTerms) => {
-    page.value = 1
-  }
-)
 </script>

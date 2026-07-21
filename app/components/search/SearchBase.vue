@@ -157,11 +157,13 @@ const error = ref(null)
 const perPage = defineModel('perPage', {
   type: Number,
   required: false,
+  default: 12,
 })
 
 const page = defineModel('page', {
   type: Number,
   required: false,
+  default: 1,
 })
 
 const sortBy = defineModel('sortBy', {
