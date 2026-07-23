@@ -19,23 +19,23 @@ export default defineNuxtConfig({
     '@nuxtjs/robots',
     '@nuxt/scripts',
     'nuxt-seo-utils',
+    'nuxt-vitalizer'
   ],
+  vitalizer: {
+    // Remove the render-blocking entry CSS
+    disableStylesheets: "entry",
+    disablePrefetchLinks: true,
+    disablePreloadLinks: true,
 
+  },
+  features: {
+    inlineStyles: true
+  },
   image: {
     format: ['webp'],
     domains: ['odoo-community.org'],
   },
-  nitro: {
-    compressPublicAssets: true,
-    storage: {
-      routeCache: {
-        driver: 'memory',
-      },
-    },
-    externals: {
-      inline: ['puppeteer-core'],
-    },
-  },
+
   plugins: ['~/plugins/services/index', '~/plugins/sponsorship'],
   ssr: true,
   devtools: { enabled: true },
@@ -50,7 +50,6 @@ export default defineNuxtConfig({
       link: [{ rel: 'icon', type: 'image/x-icon', href: '/favicon.png' }],
     },
   },
-  css: ['~/assets/css/main.css'],
   site: {
     url: 'https://apps.odoo-community.org',
     name: 'OCA Apps Store',
@@ -59,8 +58,21 @@ export default defineNuxtConfig({
       'OCA Appstore is the place to find and share Odoo apps, modules, and services developed by the Odoo Community Association (OCA).',
   },
   sitemap: {
-    sources: ['/api/__sitemap__/urls'],
     autoI18n: false,
+    sitemaps: {
+      modules: {
+        sources: ['/api/__sitemap__/modules'],
+      },
+      companies: {
+        sources: ['/api/__sitemap__/companies'],
+      },
+      persons: {
+        sources: ['/api/__sitemap__/persons'],
+      },
+      categories: {
+        sources: ['/api/__sitemap__/categories'],
+      },
+    }
   },
   ui: {
     colorMode: true,
@@ -102,18 +114,41 @@ export default defineNuxtConfig({
   routeRules: {
     '/': {
       ssr: true,
-    },
 
-    'modules/**': {
+    },
+    '/community': {
+      ssr: true,
+
+    },
+    '/community/**': {
+      ssr: true,
+
+    },
+    '/modules/**': {
+
       ssr: true,
     },
-    modules: {
-      ssr: true,
-    },
-    module: {
+    '/module': {
       redirect: '/modules',
     },
-    companies: {
+    'shop': {
+      redirect: '/modules',
+    },
+    '/categories': {
+      ssr: true,
+    },
+    '/categories/**': {
+      ssr: true,
+    },
+    '/sponsors': {
+      ssr: true,
+    },
+    '/integrators': {
+
+      ssr: true,
+    },
+    '/integrators/**': {
+      prerender: false,
       ssr: true,
     },
     '/**': {
@@ -121,8 +156,8 @@ export default defineNuxtConfig({
     },
   },
   sourcemap: {
-    server: true,
-    client: true,
+    server: false,
+    client: false,
   },
   compatibilityDate: '2025-07-16',
   eslint: {
@@ -188,4 +223,16 @@ export default defineNuxtConfig({
       enabled: true,
     },
   },
+  $development: {
+
+    nitro: {
+      compressPublicAssets: true,
+      storage: {
+        cache: {
+          driver: 'fs',
+          base: '',
+        },
+      },
+    },
+  }
 })
