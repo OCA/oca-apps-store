@@ -12,10 +12,10 @@
     <template #default>
       <div class="p-4">
         <div class="space-y-2">
-          <div class="flex items-center gap-2">
+          <div v-if="person.contact && person.contact.address" class="flex items-center gap-2">
             <UIcon name="location" class="text-gray-500" />
-            <div v-if="person.contact">
-              <p v-if="person.contact.address" class="text-sm font-medium">
+            <div>
+              <p class="text-sm font-medium">
                 {{ person.contact.address }}
               </p>
               <p v-if="person.contact.city" class="text-sm text-gray-500">
@@ -48,6 +48,7 @@
             v-if="person.contact && person.contact.email"
             class="flex items-center gap-2"
           >
+         
             <UIcon name="email" class="text-gray-500" />
             <ULink
               v-if="person.contact.email"
@@ -61,7 +62,7 @@
         </div>
       </div>
     </template>
-    <template #footer>
+    <template v-if="person.contact && person.contact.email" #footer >
       <UButton
         :to="`mailto:${person.contact.email}`"
         color="primary"

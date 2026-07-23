@@ -368,11 +368,9 @@ const onSort = async (value: string) => {
 }
 
 const changePage = async (p: number) => {
-  if (p < 1) {
-    p = 1
-  } else if (p > Math.ceil(results.found / perPage.value)) {
-    p = Math.ceil(results.found / perPage.value)
-  }
+const lastPage = Math.max(1, Math.ceil(results.found / perPage.value))
+  if (p < 1) p = 1
+  else if (p > lastPage) p = lastPage
   page.value = p
 
   router.replace({

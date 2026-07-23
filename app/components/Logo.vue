@@ -1,6 +1,7 @@
 <template>
   <NuxtLink
-    :to="localePath('/')"
+    to="https://www.odoo-community.org/"
+    target="_blank"
     class="flex items-center space-x-2"
     aria-label="OCA App Store"
   >
@@ -14,5 +15,5 @@
 </template>
 
 <script setup lang="ts">
-const localePath = useLocalePath()
+
 </script>
