@@ -11,8 +11,26 @@
           {{ item.label }}
         </div>
         <div class="text-sm">
+          <span v-if="item?.authors">
+            <template
+              v-for="(author, authorIndex) in item.authors"
+              :key="author.urlKey"
+            >
+              <NuxtLink
+                v-if="author.urlKey"
+                :to="`/${author.urlKey}`"
+                class="text-primary hover:underline"
+              >
+                {{ author.name }}
+              </NuxtLink>
+              <span v-else>
+                {{ author.name }}
+              </span>
+              <span v-if="authorIndex < item.authors.length - 1">{{ ', ' }}</span>
+            </template>
+          </span>
           <a
-            v-if="item?.link"
+            v-else-if="item?.link"
             :href="item.link"
             target="_blank"
             class="flex items-center gap-1 text-primary hover:underline"
@@ -35,14 +53,20 @@
   </div>
 </template>
 <script setup lang="ts">
-import { type Module } from '~~/models'
+import { type Module, type ModuleAuthor } from '~~/models'
 
 const props = defineProps<{
   module: Module
 }>()
 const { t } = useI18n()
 const info = computed(() => {
-  const info = [
+  const info: {
+    label: string
+    icon: string
+    value?: string
+    link?: string
+    authors?: ModuleAuthor[]
+  }[] = [
     {
       label: t('modules.technical_name'),
       value: props.module?.techname,
@@ -60,7 +84,7 @@ const info = computed(() => {
   if (props.module?.authors && props.module?.authors.length > 0) {
     info.push({
       label: t('modules.author.name'),
-      value: props.module?.authors.map((a) => a?.name).join(', '),
+      authors: props.module.authors,
       icon: 'author',
     })
   }

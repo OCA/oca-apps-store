@@ -3,7 +3,7 @@
     :ui="ui"
     :style="style"
     @click="onClick(sponsorLevel)"
-    :class="displaySponsor ? 'cursor-pointer' : ''"
+    class="cursor-pointer"
   >
     <template #header>
       <div class="flex h-full flex-col items-end justify-between">
@@ -28,20 +28,16 @@
           <div
             class="flex w-full justify-between text-lg font-semibold text-primary"
           >
-            <nuxt-link :to="displaySponsor ? `/${company.urlKey}` : ''">
+            <nuxt-link :to="`/${company.urlKey}`">
               {{ company.name }}
             </nuxt-link>
             <UButton
-              v-if="company.website?.url && displaySponsor"
+              v-if="company.website?.url"
               variant="link"
               size="sm"
               :label="company.website?.label || company?.website?.url"
               icon="website"
-              :to="
-                sponsorLevel && sponsorLevel.level !== '4'
-                  ? company.website.url
-                  : ''
-              "
+              :to="company.website.url"
               target="_blank"
               class="w-auto text-right"
             />
@@ -79,7 +75,7 @@
           </div>
         </div>
       </div>
-      <div v-if="displaySponsor" class="flex justify-end">
+      <div class="flex justify-end">
         <UButton
           color="primary"
           variant="outline"
@@ -101,20 +97,12 @@ const props = defineProps<{
   company: Company
 }>()
 const onClick = (sponsorLevel: any) => {
-  if (!sponsorLevel) return
-
   navigateTo(`/${props.company.urlKey}`)
 }
 const { $sponsor } = useNuxtApp()
 const sponsorLevel = $sponsor.getSponsorLevel(props.company)
 
-const displaySponsor = computed(() => {
-  if (sponsorLevel) {
-    return true
-  } else {
-    return false
-  }
-})
+
 const ui = computed(() => {
   const baseUi = {
     root: ' ring ring-default hover:shadow-lg transition-shadow duration-300 ease-in-out flex flex-col ',

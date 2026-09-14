@@ -27,7 +27,7 @@ export interface Module {
   summary: string
   mustHave: boolean
   maturity: string
-  authors: string[]
+  authors: ModuleAuthor[]
   publicURL: string
   runboatURL: string
   githubUrl: string
@@ -42,7 +42,7 @@ export interface Module {
     usage?: string //ModuleUsage
     contributors?: string //ModuleContributors
   }
-  maintainers: ModuleMaintainer[]
+  maintainers: ModuleMaintainers[]
   bugTracker: {
     url: string
     instructions: string
@@ -54,6 +54,11 @@ export interface Module {
 export interface ModuleMaintainers {
   avatarUrl: string
   githubUser: string
+  name: string
+  urlKey: string
+}
+
+export interface ModuleAuthor {
   name: string
   urlKey: string
 }

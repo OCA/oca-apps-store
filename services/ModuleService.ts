@@ -422,12 +422,13 @@ export const ModuleFactory = {
     return module
   },
   createModuleMaintainers(json: any[]): ModuleMaintainer[] {
+    console.log('json', json)
     return json.map((p: any) => ({
       name: p.name,
       avatarUrl: p?.avatar_url || null,
       username: p?.github_user || null,
       urlKey: p?.url_key,
-    })) as ModuleMaintainer[]
+    })) as ModuleMaintainers[]
   },
   createModuleAuthors(json: any[]): [] {
     return json.map((p: any) => ({

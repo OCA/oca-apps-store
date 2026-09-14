@@ -104,7 +104,8 @@
     </div>
     <div class="flex items-center justify-between" @click="() => goToModule()">
       <div class="flex items-center">
-        <UAvatarGroup v-if="module?.maintainers?.length" :max="8" size="sm">
+        {{ module?.maintainers }}
+        <UAvatarGroup v-if="module?.maintainers?.length > 0" :max="8" size="sm">
           <UTooltip
             v-for="maintainer in module.maintainers"
             :key="maintainer.name"
@@ -171,9 +172,15 @@ interface Highlight {
 }
 const { t } = useI18n()
 const localePath = useLocalePath()
-const module = computed(
-  () => props.moduleGrouped?.hits?.[props.moduleGrouped.hits.length - 1] || null
-)
+const module = computed(() => {
+  const hits = props.moduleGrouped?.hits || []
+  return hits.reduce<typeof hits[number] | null>((latestModule, hit) => {
+    if (!latestModule || parseInt(hit.serie, 10) > parseInt(latestModule.serie, 10)) {
+      return hit
+    }
+    return latestModule
+  }, null)
+})
 const ui = computed(() => {
   const ui = {
     root: 'w-full divide-none  max-sm:ring-0 dark:md:ring-neutral-800 max-sm:rounded-none max-sm:border-b max-sm:border-default max-md:pb-3 flex flex-col dark:[&_mark]:bg-secondary-700 [&_mark]:bg-secondary-200 [&_mark]:text-highlighted xl:min-h-64',
