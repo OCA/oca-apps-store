@@ -32,7 +32,7 @@
               {{ company.name }}
             </nuxt-link>
             <UButton
-              v-if="company.website?.url"
+              v-if="sponsorLevel && company.website?.url"
               variant="link"
               size="sm"
               :label="company.website?.label || company?.website?.url"
@@ -71,6 +71,13 @@
               <span class="text-secondary">{{
                 company.collaborationIndex
               }}</span>
+            </span>
+          </div>
+          <div class="flex items-start space-x-1 md:space-x-2">
+            <UIcon name="ci:users-group" class="text-primary" />
+            <span class="text-sm">
+              <span class="text-secondary">{{ company.contributorsCount }}</span>
+              {{ $t('company.stats.contributors') }}
             </span>
           </div>
         </div>
