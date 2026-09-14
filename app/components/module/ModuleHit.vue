@@ -104,7 +104,6 @@
     </div>
     <div class="flex items-center justify-between" @click="() => goToModule()">
       <div class="flex items-center">
-        {{ module?.maintainers }}
         <UAvatarGroup v-if="module?.maintainers?.length > 0" :max="8" size="sm">
           <UTooltip
             v-for="maintainer in module.maintainers"
