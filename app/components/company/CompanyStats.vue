@@ -31,7 +31,7 @@
       </div>
       <div class="max-md:text-xs">
         <UTooltip :text="$t('company.stats.modules_tooltip')" :delay-duration="0">
-          <UButton variant="link">{{ $t('company.stats.modules') }}*</UButton>
+          <UButton variant="link" class="text-md">{{ $t('company.stats.modules') }}*</UButton>
         </UTooltip>
         
       </div>

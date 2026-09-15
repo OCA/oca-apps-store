@@ -61,7 +61,7 @@
         <CompanyStats :company="company" />
       </div>
     </template>
-    <div v-if="company?.logoUrls?.l" class="pb-4 md:pb-0">
+    <div v-if="company?.logoUrls?.l && company.sponsorship" class="pb-4 md:pb-0">
       <nuxt-img
         :src="company.logoUrls?.l"
         :alt="company.logoUrls?.alt"
