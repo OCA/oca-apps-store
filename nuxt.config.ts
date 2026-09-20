@@ -1,4 +1,13 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
+//
+// OCA_PREVIEW=true -> preview build: a single page application (client side rendering)
+// published on GitHub Pages, one sub-directory per pull request.
+// See .github/workflows/pages-preview.yml.
+// Without this variable the production behaviour (server side rendering) is unchanged.
+const preview = process.env.OCA_PREVIEW === 'true'
+// Base URL at build time (also used for the favicon, which is an absolute path)
+const baseURL = (process.env.NUXT_APP_BASE_URL || '/').replace(/\/+$/, '')
+
 export default defineNuxtConfig({
   modules: [
     '@nuxt/icon',
@@ -34,10 +43,12 @@ export default defineNuxtConfig({
   image: {
     format: ['webp'],
     domains: ['odoo-community.org'],
+    // A static build has no image optimization server: without this the /_ipx/... URLs
+    // return a 404 in a preview.
+    ...(preview ? { provider: 'none' } : {}),
   },
-
   plugins: ['~/plugins/services/index', '~/plugins/sponsorship'],
-  ssr: true,
+  ssr: !preview,
   devtools: { enabled: true },
   app: {
     pageTransition: { name: 'page', mode: 'out-in' },
@@ -46,8 +57,12 @@ export default defineNuxtConfig({
       class: 'bg-default',
     },
     head: {
-      meta: [{ name: 'theme-color', content: '#151B47' }],
-      link: [{ rel: 'icon', type: 'image/x-icon', href: '/favicon.png' }],
+      meta: [
+        { name: 'theme-color', content: '#151B47' },
+        // a preview must never be indexed
+        ...(preview ? [{ name: 'robots', content: 'noindex, nofollow' }] : []),
+      ],
+      link: [{ rel: 'icon', type: 'image/x-icon', href: `${baseURL}/favicon.png` }],
     },
   },
   site: {
@@ -59,21 +74,31 @@ export default defineNuxtConfig({
   },
   sitemap: {
     autoI18n: false,
-    sitemaps: {
-      modules: {
-        sources: ['/api/__sitemap__/modules'],
-      },
-      companies: {
-        sources: ['/api/__sitemap__/companies'],
-      },
-      persons: {
-        sources: ['/api/__sitemap__/persons'],
-      },
-      categories: {
-        sources: ['/api/__sitemap__/categories'],
-      },
-    }
+    // In preview the module stays enabled (the server/api/__sitemap__/* routes import
+    // `defineSitemapEventHandler` from `#imports`, disabling it breaks the prerender) but no
+    // source is declared: those API routes do not exist in a static build.
+    ...(preview
+      ? { exclude: ['/**'] }
+      : {
+          sitemaps: {
+            modules: {
+              sources: ['/api/__sitemap__/modules'],
+            },
+            companies: {
+              sources: ['/api/__sitemap__/companies'],
+            },
+            persons: {
+              sources: ['/api/__sitemap__/persons'],
+            },
+            categories: {
+              sources: ['/api/__sitemap__/categories'],
+            },
+          },
+        }),
   },
+  // The robots module refuses to generate a robots.txt when a base URL is set (the case of
+  // a preview served under /oca-apps-store/...): the workflow writes its own.
+  robots: preview ? { robotsTxt: false } : {},
   ui: {
     colorMode: true,
   },
@@ -181,6 +206,9 @@ export default defineNuxtConfig({
     detectBrowserLanguage: false,
   },
   pwa: {
+    // A service worker caching the application has no point on a disposable preview, and it
+    // makes tests lie (content served from the cache).
+    disable: preview,
     strategies: 'injectManifest',
     srcDir: 'pwa',
     filename: 'sw.ts',

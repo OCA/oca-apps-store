@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>OCA Apps Store — preview</title>
+    <script>
+      // GitHub Pages only serves this 404.html (the one of the site root), never the one of a
+      // sub-directory. It therefore acts as a dispatcher.
+      //
+      // The requested URL is kept (the router of the application starts on it, exactly as if
+      // the file had existed) and the document is rewritten with the index.html of the target
+      // application; the scripts run in order and the application starts.
+      //
+      //   /oca-apps-store/pr-12/modules/foo  ->  /oca-apps-store/pr-12/index.html
+      //   /oca-apps-store/modules/foo        ->  /oca-apps-store/index.html   (site root)
+      //
+      // __SITE_BASE__ is replaced by the publishing workflow (see pages-deploy.yml).
+      var siteBase = '__SITE_BASE__';
+
+      (function () {
+        var m = location.pathname.match(/^(.*\/)pr-(\d+)\//);
+        var base = m ? m[1] + 'pr-' + m[2] + '/' : siteBase;
+
+        fetch(base + 'index.html')
+          .then(function (response) {
+            if (!response.ok) {
+              throw new Error('build not found (' + response.status + ')');
+            }
+            return response.text();
+          })
+          .then(function (html) {
+            document.open();
+            document.write(html);
+            document.close();
+          })
+          .catch(function (error) {
+            document.body.innerHTML =
+              '<p style="font-family:sans-serif;padding:2rem">' +
+              'Page unavailable (' +
+              error.message +
+              ').' +
+              '</p>';
+          });
+      })();
+    </script>
+  </head>
+  <body>
+    <div style="font-family: sans-serif; padding: 2rem">Loading…</div>
+  </body>
+</html>
