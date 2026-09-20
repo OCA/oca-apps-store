@@ -118,7 +118,7 @@ const setIntersectionObserver = () => {
         })
       }
     },
-    { threshold: 1.0 } // Déclenche quand la sentinelle est visible à 100%
+    { threshold: 1.0 } // Triggers when the sentinel is fully visible
   )
 
   for (const elem of pageDelimiter.value || []) {
