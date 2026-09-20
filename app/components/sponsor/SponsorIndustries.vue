@@ -33,7 +33,7 @@
       >
         <template #leading>
           <UAvatarGroup size="xl">
-            <UAvatar src="/logo-192.png" alt="Oca logo" loading="lazy" />
+            <UAvatar :src="ocaLogo" alt="Oca logo" loading="lazy" />
           </UAvatarGroup>
         </template>
       </UEmpty>
@@ -49,6 +49,8 @@ const props = defineProps<{
   sponsor: Sponsor
   sponsorLevel: SponsorLevelsCollectionItem
 }>()
+
+const ocaLogo = useAssetUrl('/logo-192.png')
 
 const bcgSponsorColor = computed (() => {
   switch(props.sponsor.sponsorship.level.name) {

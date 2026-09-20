@@ -5,8 +5,8 @@
     aria-label="OCA App Store"
   >
     <UColorModeImage
-      light="/oca-logo.png"
-      dark="/oca-logo-light.png"
+      :light="lightLogo"
+      :dark="darkLogo"
       class="max-w-24"
       alt="OCA App Store"
     />
@@ -15,4 +15,6 @@
 
 <script setup lang="ts">
 const localePath = useLocalePath()
+const lightLogo = useAssetUrl('/oca-logo.png')
+const darkLogo = useAssetUrl('/oca-logo-light.png')
 </script>

@@ -189,7 +189,7 @@ if (route?.query?.version) {
 }
 
 const module = ref<Module | null>(selectedVersion)
-const image = computed(() => module.value?.iconUrl || '/oca-logo.png')
+const image = computed(() => module.value?.iconUrl || useAssetUrl('/oca-logo.png'))
 const breadCrumb = computed(() => {
   const items = [
     { label: t('nav.modules.title'), to: '/modules', icon: 'module' },
