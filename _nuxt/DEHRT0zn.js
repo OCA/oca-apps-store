@@ -1,1 +1,0 @@
-import{d as o,u as s,n as u}from"./BvEr4mMI.js";import{u as n}from"./Cmc-pllH.js";const f=o((a,r)=>{const e=n("auth"),t=s()("account/login");if(!e?.getUser()?.login&&a.path!==t)return u(t)});export{f as default};
