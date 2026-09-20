@@ -1,0 +1,73 @@
+name: Preview build (PR)
+
+# Builds the single page application rendering of a pull request and uploads the result as an
+# artifact.
+#
+# This workflow holds NO secret and runs with a read-only token: the code of a pull request
+# (install scripts, nuxt.config, plugins) is untrusted code, it must never run in a job
+# holding a write permission.
+#
+# The deployment is done by `Preview deploy (GitHub Pages)` (workflow_run): that name is
+# referenced there, renaming it here means renaming it there.
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: preview-build-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+env:
+  # The preview site is the GitHub Pages site of this repository:
+  # https://oca.github.io/oca-apps-store/
+  SITE_PATH: /${{ github.event.repository.name }}/pr-${{ github.event.pull_request.number }}/
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4 # merge commit of the pull request
+
+      - run: corepack enable
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Build the single page application
+        env:
+          OCA_PREVIEW: 'true'
+          NUXT_APP_BASE_URL: ${{ env.SITE_PATH }}
+          # Public values (read-only search key). Can be overridden by repository variables of
+          # the same name.
+          NUXT_PUBLIC_SEARCH_URL: ${{ vars.NUXT_PUBLIC_SEARCH_URL || 'https://search.odoo-community.org' }}
+          NUXT_PUBLIC_SEARCH_KEY: ${{ vars.NUXT_PUBLIC_SEARCH_KEY || 'NrQZ2N1jFKutefDt3idZ0sR9wfNiPHtQ' }}
+          NUXT_PUBLIC_SEARCH_INDICES_COMPANIES_EN: ${{ vars.NUXT_PUBLIC_SEARCH_INDICES_COMPANIES_EN || 'ocastore_companies_en_us' }}
+          NUXT_PUBLIC_SEARCH_INDICES_MODULES_EN: ${{ vars.NUXT_PUBLIC_SEARCH_INDICES_MODULES_EN || 'ocastore_modules_en_us' }}
+          NUXT_PUBLIC_SEARCH_INDICES_CATEGORIES_EN: ${{ vars.NUXT_PUBLIC_SEARCH_INDICES_CATEGORIES_EN || 'ocastore_categories_en_us' }}
+          NUXT_PUBLIC_SEARCH_INDICES_PERSONS_EN: ${{ vars.NUXT_PUBLIC_SEARCH_INDICES_PERSONS_EN || 'ocastore_persons_en_us' }}
+        run: pnpm exec nuxt build --preset github_pages
+
+      - name: Disable indexing
+        run: |
+          printf 'User-agent: *\nDisallow: /\n' > .output/public/robots.txt
+          rm -f .output/public/sitemap.xml .output/public/sitemap_index.xml
+
+      - name: Archive the build
+        run: tar --no-same-owner -czf preview.tar.gz -C .output/public .
+
+      - name: Archive size
+        run: du -h preview.tar.gz
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: preview-pr-${{ github.event.pull_request.number }}
+          path: preview.tar.gz
+          retention-days: 7
+          if-no-files-found: error

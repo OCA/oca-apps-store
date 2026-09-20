@@ -1,0 +1,251 @@
+name: Preview deploy (GitHub Pages)
+
+# Publishes on the GitHub Pages of THIS repository (https://oca.github.io/oca-apps-store/):
+#   - the site root    = the last version of main   (on push to main)
+#   - /pr-<n>/         = the SPA rendering of a PR  (after the build workflow)
+#   - cleanup of the directories of closed PRs      (daily cron)
+#
+# No secret: the publication happens in this repository, with the GITHUB_TOKEN.
+# This workflow NEVER runs the code of a pull request: it downloads the artifact produced by
+# `Preview build (PR)`, checks it (paths, links, size) and publishes it as is on the gh-pages
+# branch.
+on:
+  workflow_run:
+    workflows: ['Preview build (PR)']
+    types: [completed]
+  push:
+    branches: [main]
+  schedule:
+    - cron: '23 3 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write # publish on the gh-pages branch of this repository
+  actions: read # download the artifact of the build
+  pull-requests: write # comment the pull request with the link of the preview
+
+# Only one writer on gh-pages: publications are serialized.
+concurrency:
+  group: github-pages
+  cancel-in-progress: false
+
+env:
+  SITE_BASE: /oca-apps-store/
+  SITE_URL: https://oca.github.io/oca-apps-store
+  # Can be overridden by repository variables of the same name
+  SEARCH_URL: ${{ vars.NUXT_PUBLIC_SEARCH_URL || 'https://search.odoo-community.org' }}
+  SEARCH_KEY: ${{ vars.NUXT_PUBLIC_SEARCH_KEY || 'NrQZ2N1jFKutefDt3idZ0sR9wfNiPHtQ' }}
+
+jobs:
+  # ------------------------------------------------------------ preview of a pull request
+  preview:
+    if: github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Find the pull request associated with the commit
+        id: pr
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const sha = context.payload.workflow_run.head_sha
+            const { data } = await github.rest.repos.listPullRequestsAssociatedWithCommit({
+              owner: context.repo.owner, repo: context.repo.repo, commit_sha: sha,
+            })
+            const pr = data.find((p) => p.state === 'open') || data[0]
+            if (!pr) {
+              core.setFailed(`No pull request associated with commit ${sha}`)
+              return
+            }
+            core.info(`PR #${pr.number}`)
+            core.setOutput('number', String(pr.number))
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: preview-pr-${{ steps.pr.outputs.number }}
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: incoming
+
+      - name: Check and extract the build (untrusted data)
+        run: |
+          set -euo pipefail
+          cd incoming
+          tar -tzf preview.tar.gz > list.txt
+          # no absolute path, no directory traversal, no symbolic link
+          if grep -qE '^/|(^|/)\.\.(/|$)' list.txt; then
+            echo '::error::non compliant archive (absolute path or traversal)'
+            exit 1
+          fi
+          if tar -tvzf preview.tar.gz | grep -qE '^[lh]'; then
+            echo '::error::non compliant archive (symbolic or hard link)'
+            exit 1
+          fi
+          echo "files in the archive: $(wc -l < list.txt)"
+          # size guard: a preview build is a few tens of MB
+          test "$(stat -c%s preview.tar.gz)" -lt 300000000
+          mkdir -p ../extract
+          tar -xzf preview.tar.gz -C ../extract --no-same-owner --no-same-permissions
+          test -f ../extract/index.html
+          du -sh ../extract
+
+      - name: Publish /pr-<n>/ on gh-pages
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR: ${{ steps.pr.outputs.number }}
+          SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          set -euo pipefail
+          REMOTE="https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          if git clone --depth 1 --branch gh-pages "$REMOTE" pages 2>/dev/null; then
+            echo 'gh-pages branch retrieved'
+          else
+            mkdir -p pages && git -C pages init -b gh-pages && git -C pages remote add origin "$REMOTE"
+          fi
+          rm -rf "pages/pr-${PR}"
+          mkdir -p "pages/pr-${PR}"
+          cp -a extract/. "pages/pr-${PR}/"
+          sed "s|__SITE_BASE__|${SITE_BASE}|g" .github/preview/404.html > pages/404.html
+          touch pages/.nojekyll
+          cd pages
+          git add -A
+          git -c user.name='oca-apps-store preview' -c user.email='preview@users.noreply.github.com' \
+            commit -m "preview: PR #${PR} (${SHA})" || echo 'nothing to commit'
+          git push origin gh-pages
+          echo "published: ${SITE_URL}/pr-${PR}/"
+
+      - name: Comment the pull request
+        uses: actions/github-script@v7
+        env:
+          PR_NUMBER: ${{ steps.pr.outputs.number }}
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+          PREVIEW: ${{ env.SITE_URL }}/pr-${{ steps.pr.outputs.number }}/
+        with:
+          script: |
+            const pr = Number(process.env.PR_NUMBER)
+            const marker = '<!-- oca-apps-store-preview -->'
+            const body = [
+              marker,
+              `📦 **Preview of this pull request**: ${process.env.PREVIEW}`,
+              '',
+              `<sub>SPA build \`${(process.env.HEAD_SHA || '').slice(0, 7)}\` published on the GitHub Pages of the repository — not indexed, replaced on every push, removed when the pull request is closed.</sub>`,
+            ].join('\n')
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner, repo: context.repo.repo, issue_number: pr, per_page: 100,
+            })
+            const existing = comments.find((c) => c.body && c.body.includes(marker))
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner, repo: context.repo.repo, comment_id: existing.id, body,
+              })
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner, repo: context.repo.repo, issue_number: pr, body,
+              })
+            }
+
+  # ------------------------------------------- site root (last version of main)
+  root:
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: corepack enable
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+
+      - name: Build the single page application (site root)
+        env:
+          OCA_PREVIEW: 'true'
+          NUXT_APP_BASE_URL: ${{ env.SITE_BASE }}
+          NUXT_PUBLIC_SEARCH_URL: ${{ env.SEARCH_URL }}
+          NUXT_PUBLIC_SEARCH_KEY: ${{ env.SEARCH_KEY }}
+          NUXT_PUBLIC_SEARCH_INDICES_COMPANIES_EN: ocastore_companies_en_us
+          NUXT_PUBLIC_SEARCH_INDICES_MODULES_EN: ocastore_modules_en_us
+          NUXT_PUBLIC_SEARCH_INDICES_CATEGORIES_EN: ocastore_categories_en_us
+          NUXT_PUBLIC_SEARCH_INDICES_PERSONS_EN: ocastore_persons_en_us
+        run: pnpm exec nuxt build --preset github_pages
+
+      - name: Disable indexing
+        run: |
+          printf 'User-agent: *\nDisallow: /\n' > .output/public/robots.txt
+          rm -f .output/public/sitemap.xml .output/public/sitemap_index.xml
+
+      - name: Publish the root (keeping the previews of pull requests)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          REMOTE="https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          if git clone --depth 1 --branch gh-pages "$REMOTE" pages 2>/dev/null; then :; else
+            mkdir -p pages && git -C pages init -b gh-pages && git -C pages remote add origin "$REMOTE"
+          fi
+          # everything is replaced EXCEPT the pr-* directories and the service files
+          rsync -a --delete \
+            --exclude '.git' --exclude 'pr-*' --exclude '404.html' --exclude '.nojekyll' \
+            .output/public/ pages/
+          sed "s|__SITE_BASE__|${SITE_BASE}|g" .github/preview/404.html > pages/404.html
+          touch pages/.nojekyll
+          cd pages
+          git add -A
+          git -c user.name='oca-apps-store preview' -c user.email='preview@users.noreply.github.com' \
+            commit -m "site: ${SHA}" || echo 'nothing to commit'
+          git push origin gh-pages
+
+  # ------------------------------------------------------------------ cleanup
+  prune:
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Remove the previews of closed pull requests (keeps the 15 most recent)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          git clone --depth 1 --branch gh-pages \
+            "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" pages
+          python3 - <<'PY'
+          import json, os, re, subprocess, urllib.request
+
+          repo = os.environ['REPO']
+          token = os.environ['GITHUB_TOKEN']
+          keep = 15
+          dirs = sorted(
+              (d for d in os.listdir('pages') if re.fullmatch(r'pr-\d+', d)),
+              key=lambda d: int(d[3:]),
+              reverse=True,
+          )
+          to_delete = []
+          for i, d in enumerate(dirs):
+              number = int(d[3:])
+              req = urllib.request.Request(
+                  f'https://api.github.com/repos/{repo}/pulls/{number}',
+                  headers={'Authorization': f'Bearer {token}', 'Accept': 'application/vnd.github+json'},
+              )
+              try:
+                  with urllib.request.urlopen(req) as r:
+                      state = json.load(r)['state']
+              except Exception as exc:  # unreachable PR: keep it, just in case
+                  print(f'{d}: kept ({exc})')
+                  continue
+              if state != 'open' or i >= keep:
+                  to_delete.append(d)
+          for d in to_delete:
+              print(f'removing {d}')
+              subprocess.run(['rm', '-rf', f'pages/{d}'], check=True)
+          PY
+          cd pages
+          git add -A
+          if git diff --cached --quiet; then
+            echo 'nothing to clean'
+          else
+            git -c user.name='oca-apps-store preview' -c user.email='preview@users.noreply.github.com' \
+              commit -m 'preview: cleanup of closed pull requests'
+            git push origin gh-pages
+          fi

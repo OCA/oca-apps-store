@@ -1,4 +1,13 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
+//
+// OCA_PREVIEW=true -> preview build: a single page application (client side rendering)
+// published on GitHub Pages, one sub-directory per pull request.
+// See .github/workflows/pages-preview.yml.
+// Without this variable the production behaviour (server side rendering) is unchanged.
+const preview = process.env.OCA_PREVIEW === 'true'
+// Base URL at build time (also used for the favicon, which is an absolute path)
+const baseURL = (process.env.NUXT_APP_BASE_URL || '/').replace(/\/+$/, '')
+
 export default defineNuxtConfig({
   modules: [
     '@nuxt/icon',
@@ -24,9 +33,14 @@ export default defineNuxtConfig({
   image: {
     format: ['webp'],
     domains: ['odoo-community.org'],
+    // A static build has no image optimization server: without this the /_ipx/... URLs
+    // return a 404 in a preview.
+    ...(preview ? { provider: 'none' } : {}),
   },
   nitro: {
-    compressPublicAssets: true,
+    // compressPublicAssets doubles the size of the gh-pages branch (.br/.gz files) for no
+    // gain at all on GitHub Pages, which already serves compressed content.
+    compressPublicAssets: !preview,
     storage: {
       routeCache: {
         driver: 'memory',
@@ -37,7 +51,7 @@ export default defineNuxtConfig({
     },
   },
   plugins: ['~/plugins/services/index', '~/plugins/sponsorship'],
-  ssr: true,
+  ssr: !preview,
   devtools: { enabled: true },
   app: {
     pageTransition: { name: 'page', mode: 'out-in' },
@@ -46,8 +60,12 @@ export default defineNuxtConfig({
       class: 'bg-default',
     },
     head: {
-      meta: [{ name: 'theme-color', content: '#151B47' }],
-      link: [{ rel: 'icon', type: 'image/x-icon', href: '/favicon.png' }],
+      meta: [
+        { name: 'theme-color', content: '#151B47' },
+        // a preview must never be indexed
+        ...(preview ? [{ name: 'robots', content: 'noindex, nofollow' }] : []),
+      ],
+      link: [{ rel: 'icon', type: 'image/x-icon', href: `${baseURL}/favicon.png` }],
     },
   },
   css: ['~/assets/css/main.css'],
@@ -59,9 +77,15 @@ export default defineNuxtConfig({
       'OCA Appstore is the place to find and share Odoo apps, modules, and services developed by the Odoo Community Association (OCA).',
   },
   sitemap: {
-    sources: ['/api/__sitemap__/urls'],
     autoI18n: false,
+    // The module cannot be disabled in preview: server/api/__sitemap__/urls.ts imports
+    // `defineSitemapEventHandler` from `#imports`, which would break the prerender. The
+    // sources are emptied instead.
+    ...(preview ? { sources: [], exclude: ['/**'] } : { sources: ['/api/__sitemap__/urls'] }),
   },
+  // The robots module refuses to generate a robots.txt when a base URL is set (the case of
+  // a preview served under /oca-apps-store/...): the workflow writes its own.
+  robots: preview ? { robotsTxt: false } : {},
   ui: {
     colorMode: true,
   },
@@ -120,10 +144,12 @@ export default defineNuxtConfig({
       ssr: true,
     },
   },
-  sourcemap: {
-    server: true,
-    client: true,
-  },
+  sourcemap: preview
+    ? false
+    : {
+        server: true,
+        client: true,
+      },
   compatibilityDate: '2025-07-16',
   eslint: {
     config: {
@@ -146,6 +172,9 @@ export default defineNuxtConfig({
     detectBrowserLanguage: false,
   },
   pwa: {
+    // A service worker caching the application has no point on a disposable preview, and it
+    // makes tests lie (content served from the cache).
+    disable: preview,
     strategies: 'injectManifest',
     srcDir: 'pwa',
     filename: 'sw.ts',
