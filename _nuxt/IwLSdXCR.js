@@ -1,0 +1,1 @@
+import{d as o,u as s,n as u}from"./3fEUr93Y.js";import{u as n}from"./C9S8h39M.js";const f=o((a,r)=>{const e=n("auth"),t=s()("account/login");if(!e?.getUser()?.login&&a.path!==t)return u(t)});export{f as default};

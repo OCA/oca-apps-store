@@ -1,0 +1,1 @@
+import{l as r,aE as s,aF as u,g as n}from"./3fEUr93Y.js";function f(t){return r(()=>s(t)?!!u(t)?.closest("form"):!0)}function c(t){return t?"open":"closed"}function i(t){const e=n();for(const o of t)if(o===e||(o.focus(),n()!==e))return}export{i as f,c as g,f as u};
