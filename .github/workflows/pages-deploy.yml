@@ -24,7 +24,8 @@ permissions:
   actions: read # download the artifact of the build
   pull-requests: write # comment the pull request with the link of the preview
 
-# Only one writer on gh-pages: publications are serialized.
+# Only one writer on gh-pages: publications are serialized. Note that this serializes runs,
+# not the jobs of a single run (`workflow_dispatch` starts `root` and `prune` together).
 concurrency:
   group: github-pages
   cancel-in-progress: false
@@ -42,28 +43,75 @@ jobs:
     if: github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - name: Find the pull request associated with the commit
+      - name: Find the pull request of the build
         id: pr
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
-            const sha = context.payload.workflow_run.head_sha
-            const { data } = await github.rest.repos.listPullRequestsAssociatedWithCommit({
-              owner: context.repo.owner, repo: context.repo.repo, commit_sha: sha,
-            })
-            const pr = data.find((p) => p.state === 'open') || data[0]
-            if (!pr) {
-              core.setFailed(`No pull request associated with commit ${sha}`)
+            // Three sources, in order of reliability. For a pull request opened from a fork:
+            //   - `workflow_run.pull_requests` is empty;
+            //   - the commit of the fork is not associated with the pull request on the side
+            //     of the base repository, so `GET /commits/{sha}/pulls` also answers with an
+            //     empty list (measured on this repository);
+            //   - the artifact name, which the build workflow builds from
+            //     `github.event.pull_request.number`, is always there and always right.
+            const run = context.payload.workflow_run
+            const names = (
+              await github.paginate(github.rest.actions.listWorkflowRunArtifacts, {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                run_id: run.id,
+                per_page: 100,
+              })
+            ).map((artifact) => artifact.name)
+            core.info(`artifacts of run ${run.id}: ${names.join(', ') || '(none)'}`)
+
+            let number
+            let source
+            const fromPayload = (run.pull_requests || []).find((pr) => pr.state !== 'closed')
+            if (fromPayload) {
+              number = fromPayload.number
+              source = 'workflow_run.pull_requests'
+            }
+            const fromArtifact = names
+              .map((name) => /^preview-pr-(\d+)$/.exec(name))
+              .find(Boolean)
+            if (!number && fromArtifact) {
+              number = Number(fromArtifact[1])
+              source = 'artifact name'
+            }
+            if (!number) {
+              // last resort: find the pull request whose head branch is the one that ran
+              const owner = run.head_repository?.owner?.login ?? context.repo.owner
+              const { data } = await github.rest.pulls.list({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                state: 'open',
+                head: `${owner}:${run.head_branch}`,
+                per_page: 100,
+              })
+              if (data.length === 1) {
+                number = data[0].number
+                source = 'head branch'
+              }
+            }
+            if (!number) {
+              core.setFailed(
+                `No pull request found for run ${run.id} ` +
+                  `(head branch ${run.head_branch}, head sha ${run.head_sha}, ` +
+                  `artifacts: ${names.join(', ') || 'none'})`,
+              )
               return
             }
-            core.info(`PR #${pr.number}`)
-            core.setOutput('number', String(pr.number))
+            core.info(`pull request #${number} (from ${source})`)
+            core.setOutput('number', String(number))
+            core.setOutput('artifact', `preview-pr-${number}`)
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
-          name: preview-pr-${{ steps.pr.outputs.number }}
+          name: ${{ steps.pr.outputs.artifact }}
           run-id: ${{ github.event.workflow_run.id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
           path: incoming
@@ -116,7 +164,7 @@ jobs:
           echo "published: ${SITE_URL}/pr-${PR}/"
 
       - name: Comment the pull request
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         env:
           PR_NUMBER: ${{ steps.pr.outputs.number }}
           HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
@@ -150,9 +198,9 @@ jobs:
     if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - run: corepack enable
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: '24'
           cache: pnpm
