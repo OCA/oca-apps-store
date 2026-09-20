@@ -34,7 +34,7 @@
         >
           <template #leading>
             <UAvatarGroup size="xl">
-              <UAvatar src="/logo-192.png" alt="Oca logo" loading="lazy" />
+              <UAvatar :src="ocaLogo" alt="Oca logo" loading="lazy" />
             </UAvatarGroup>
           </template>
         </UEmpty>
@@ -60,6 +60,7 @@ const urlParams = useRoute().params
 const route = useRoute()
 
 const personService = useService('persons')
+const ocaLogo = useAssetUrl('/logo-192.png')
 const breadCrumb = computed(() => {
   const items: any = [
     {

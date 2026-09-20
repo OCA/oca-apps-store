@@ -4,7 +4,7 @@
       class="absolute -top-12 left-1/2 -z-10 h-[100%] w-screen -translate-x-1/2 transform bg-primary-500 mt-24"
     />
     <img
-      src="/img/oca_logo_bckg_white.png"
+      :src="backgroundLogo"
       alt="Illustration"
       class="absolute top-0 -left-100 z-10 h-full w-full object-none object-left opacity-10"
     />
@@ -42,4 +42,6 @@ import type { Sponsor } from '~~/models'
 const props = defineProps<{
   sponsor: Sponsor
 }>()
+
+const backgroundLogo = useAssetUrl('/img/oca_logo_bckg_white.png')
 </script>

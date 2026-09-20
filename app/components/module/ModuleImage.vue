@@ -30,8 +30,8 @@ const imageSrc = computed(() => {
   if (props.module?.iconUrl) return props.module.iconUrl
 
   return colorMode.value === 'dark'
-    ? '/img/oca_modules_logo_vertical_dark.png'
-    : '/img/oca_modules_logo_vertical.png'
+    ? useAssetUrl('/img/oca_modules_logo_vertical_dark.png')
+    : useAssetUrl('/img/oca_modules_logo_vertical.png')
 })
 const sizeClasses = computed(() => {
   switch (props.size) {
