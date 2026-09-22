@@ -243,6 +243,7 @@ const res = await useAsyncData<FacetSearchResult<T>>(
     watch: [route.path],
   }
 )
+
 const { data } = res
 if (hasFacetQuery) {
   /* 
@@ -281,7 +282,6 @@ const performSearchQuery = async (): Promise<FacetSearchResult<T>> => {
     per_page: perPage.value,
     q: '*',
   }
-
   const query = {
     ...defaultQuery,
     ...(props?.query || {}),
@@ -338,7 +338,6 @@ const search = async () => {
 const onChangeFilter = async (facetName: string, query: string) => {
   facetHasChanges.value = true
   queryFacets[facetName] = query
-
   await search()
 }
 
@@ -368,7 +367,7 @@ const onSort = async (value: string) => {
 }
 
 const changePage = async (p: number) => {
-const lastPage = Math.max(1, Math.ceil(results.found / perPage.value))
+  const lastPage = Math.max(1, Math.ceil(results.found / perPage.value))
   if (p < 1) p = 1
   else if (p > lastPage) p = lastPage
   page.value = p
@@ -391,12 +390,6 @@ const scrollToTop = () => {
     })
   }
 }
-onMounted(async () => {
-  if (data?.value) {
-    return
-  }
-  await search()
-})
 
 watch(
   () => [props.query, perPage.value],
