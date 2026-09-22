@@ -42,7 +42,12 @@
       v-model:page="page"
       :items-per-page="perPage"
       :total="total"
-
+      :to="
+        (p) => ({
+          query: { ...route.query, page: p > 1 ? p.toString() : undefined },
+        })
+      "
+      @update:page="(newPage) => emit('update:page', newPage)"
     />
   </div>
 </template>
@@ -62,8 +67,8 @@ const props = withDefaults(defineProps<Props>(), {
   total: () => 0,
   infiniteScroll: () => true,
   isLoading: () => false,
-
 })
+
 const emit = defineEmits(['update:page'])
 const { t } = useI18n()
 
@@ -83,7 +88,6 @@ const perPage = defineModel('perPage', {
 const page = defineModel('page', {
   type: Number,
   default: 1,
-  //default: () => route.query.page ? Number(route.query.page) : 1,
 })
 
 const setInfiniteScroll = () => {

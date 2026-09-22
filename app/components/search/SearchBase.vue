@@ -144,16 +144,20 @@ const props = withDefaults(
     infiniteScroll: true,
   }
 )
+
 const perPageCookie = useCookie('search_per_page')
 const { t } = useI18n()
 let initFacetCount = 0
 const searchContainer = useTemplateRef<HTMLDivElement>('container')
 const router = useRouter()
 const route = useRoute()
+const localePath = useLocalePath()
+
 const { start, finish } = useLoadingIndicator()
 const facetHasChanges = ref(false)
 const isLoading = ref(false)
 const error = ref(null)
+
 const perPage = defineModel('perPage', {
   type: Number,
   required: false,
@@ -170,14 +174,17 @@ const sortBy = defineModel('sortBy', {
   type: String,
   required: false,
 })
+
 if (perPageCookie?.value) {
   perPage.value = route.query.per_page
     ? Number(route.query.per_page)
     : Number(perPageCookie.value)
 }
+
 if (!page.value) {
   page.value = route.query.page ? Number(route.query.page) : 1
 }
+
 if (!sortBy.value) {
   const querySort = route.query.sort
     ? String(route.query.sort)
@@ -232,7 +239,6 @@ const res = await useAsyncData<FacetSearchResult<T>>(
       per_page: perPage.value,
       sort_by: sortBy.value,
     }
-
     if (props.infiniteScroll) {
       query.page = 1
       query.per_page = perPage.value * page.value
@@ -243,6 +249,7 @@ const res = await useAsyncData<FacetSearchResult<T>>(
     watch: [route.path],
   }
 )
+
 const { data } = res
 if (hasFacetQuery) {
   /* 
@@ -306,7 +313,7 @@ const search = async () => {
       router.push({
         query: {
           ...route.query,
-          page: '1',
+          page: undefined,
         },
       })
     }
@@ -368,7 +375,7 @@ const onSort = async (value: string) => {
 }
 
 const changePage = async (p: number) => {
-const lastPage = Math.max(1, Math.ceil(results.found / perPage.value))
+  const lastPage = Math.max(1, Math.ceil(results.found / perPage.value))
   if (p < 1) p = 1
   else if (p > lastPage) p = lastPage
   page.value = p
@@ -378,7 +385,7 @@ const lastPage = Math.max(1, Math.ceil(results.found / perPage.value))
       ...route.query,
       per_page: perPage.value,
       q: props.query?.q || undefined,
-      page: page.value.toString(),
+      page: page.value > 1 ? page.value.toString() : undefined,
     },
   })
   await search()
@@ -391,6 +398,7 @@ const scrollToTop = () => {
     })
   }
 }
+
 onMounted(async () => {
   if (data?.value) {
     return
@@ -428,6 +436,7 @@ watch(
     }
   }
 )
+
 const initFacet = (field: string, query: string) => {
   if (query) {
     queryFacets[field] = query
@@ -438,5 +447,44 @@ const initFacet = (field: string, query: string) => {
     search()
   }
 }
+
 provide('init-facet', initFacet)
+
+useHead(() => {
+  const links: any[] = []
+  let p = page.value || 1
+  if (page.value && page.value > 1) {
+    const prevPage = p - 1
+    links.push({
+      rel: 'prev',
+      href: localePath({
+        path: route.path,
+        query: { page: prevPage > 1 ? prevPage : undefined },
+      }),
+    })
+  }
+
+  if (
+    page.value &&
+    perPage.value &&
+    page.value < Math.ceil(results.found / perPage.value)
+  ) {
+    links.push({
+      rel: 'next',
+      href: localePath({ path: route.path, query: { page: p + 1 } }),
+    })
+  }
+
+  links.push({
+    rel: 'canonical',
+    href: localePath({
+      path: route.path,
+      query: { page: p > 1 ? p.toString() : undefined },
+    }),
+  })
+
+  return {
+    link: links,
+  }
+})
 </script>

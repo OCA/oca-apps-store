@@ -422,7 +422,6 @@ export const ModuleFactory = {
     return module
   },
   createModuleMaintainers(json: any[]): ModuleMaintainer[] {
-    console.log('json', json)
     return json.map((p: any) => ({
       name: p.name,
       avatarUrl: p?.avatar_url || null,

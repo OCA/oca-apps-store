@@ -89,9 +89,11 @@ const transformedItems = computed(() => {
   if (props.transformItems) {
     items = props.transformItems(props.items)
   }
+
   if (!displayAllValues.value) {
     items = items.slice(0, 10)
   }
+
   /**
    * Add missing values to items to allow searching for values that are not in the top of the facet results.
    * This is useful when the user has selected a value that is not in the top of the facet results,
