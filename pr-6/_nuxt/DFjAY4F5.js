@@ -1,0 +1,1 @@
+import{_ as s}from"./BP64gWT-.js";import{o as t,q as o,h as r}from"./BBXpEHvj.js";const a={},c={class:"subpixel-antialiased"};function n(e,l){return t(),o("div",c,[r(e.$slots,"default")])}const d=s(a,[["render",n]]);export{d as default};
