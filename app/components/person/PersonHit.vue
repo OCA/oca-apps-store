@@ -82,7 +82,7 @@ const props = defineProps<{
 
 const ui = computed(() => {
   const ui = {
-    root: 'w-full shadow cursor-pointer justify-start flex flex-col',
+    root: 'w-full shadow cursor-pointer justify-start flex flex-col dark:bg-elevated/50',
     header: ' flex items-center gap-3 p-3 sm:p-4',
     body: 'p-3 sm:p-4 py-2 sm:py-2 flex-1 h-full grow border-b-0',
     footer: 'p-3 sm:p-4 ',

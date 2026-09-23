@@ -46,9 +46,11 @@ const modules = computed(() => props.moduleGrouped?.hits || [])
 const module = computed(() => modules.value[modules.value.length - 1] || null)
 const ui = computed(() => {
   return {
-    root: module.value?.urlKey
-      ? 'hover:shadow-lg transition-shadow duration-200 cursor-pointer'
-      : '',
+    root:
+      'bg-elevated ' +
+      (module.value?.urlKey
+        ? 'hover:shadow-lg transition-shadow duration-200 cursor-pointer'
+        : ''),
     body: 'flex items-start gap-3',
   }
 })

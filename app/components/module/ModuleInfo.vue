@@ -26,7 +26,9 @@
               <span v-else>
                 {{ author.name }}
               </span>
-              <span v-if="authorIndex < item.authors.length - 1">{{ ', ' }}</span>
+              <span v-if="authorIndex < item.authors.length - 1">{{
+                ', '
+              }}</span>
             </template>
           </span>
           <a
@@ -47,7 +49,7 @@
         v-if="index == 0 && module"
         :module="module"
         size="sm"
-        class="flex-1 items-end justify-end"
+        class="flex-1 items-center justify-end max-lg:py-4 lg:items-end"
       />
     </div>
   </div>

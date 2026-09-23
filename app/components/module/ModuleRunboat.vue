@@ -1,7 +1,7 @@
 <template>
   <div
     v-if="module && module?.runboatURL"
-    class="inline-flex flex-col items-center justify-end"
+    class="inline-flex flex-col items-center justify-end gap-2"
   >
     <UButton
       variant="solid"
@@ -10,6 +10,7 @@
       size="lg"
       icon="runboat"
       target="_blank"
+      class="max-lg:px-10"
     >
       <div class="text-nowrap">
         {{ t('modules.runboat.try') }}
@@ -30,7 +31,7 @@
 <script setup lang="ts">
 import type { Module } from '~~/models'
 const props = defineProps<{
-      module: Module | null
+  module: Module | null
 }>()
 
 const { t } = useI18n()

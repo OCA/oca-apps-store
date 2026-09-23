@@ -125,7 +125,7 @@ const ui = computed(() => {
     results:
       displayMode.value === 'list'
         ? 'flex flex-col gap-3 sm:gap-4'
-        : 'gap-3 sm:gap-5',
+        : 'lg:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-5',
   }
 })
 </script>

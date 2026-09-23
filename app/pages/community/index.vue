@@ -11,7 +11,7 @@
   >
     <template #header>
       <ContentRenderer v-if="content" :value="content" />
-      <div class="w-full ">
+      <div class="w-full">
         <UAlert
           color="neutral"
           variant="naked"
@@ -64,13 +64,9 @@
           />
         </UFieldGroup>
       </div>
-      
-      
-     
     </template>
-    
+
     <template #hit="{ hit: person, index, total }">
-     
       <PersonHit :variant="displayMode" :person="person" />
     </template>
   </SearchBase>

@@ -92,7 +92,7 @@
     </div>
     <div class="relative mb-12 pt-12 pb-12 lg:py-16 xl:pt-18 xl:pb-10">
       <div
-        class="absolute -top-3 left-1/2 -z-10 h-full w-screen -translate-x-1/2 -skew-y-3 transform bg-secondary-50 dark:bg-primary-500"
+        class="absolute -top-3 left-1/2 -z-10 h-full w-screen -translate-x-1/2 -skew-y-3 transform bg-secondary-50 dark:bg-primary-900"
       />
       <div class="flex flex-col gap-2 lg:flex-row">
         <div class="flex flex-col gap-4">
@@ -191,7 +191,9 @@ if (route.path !== `/modules/${selectedVersion?.techname}`) {
 }
 
 const module = ref<Module | null>(selectedVersion || null)
-const image = computed(() => module.value?.iconUrl || useAssetUrl('/oca-logo.png'))
+const image = computed(
+  () => module.value?.iconUrl || useAssetUrl('/oca-logo.png')
+)
 const breadCrumb = computed(() => {
   const items = [
     { label: t('nav.modules.title'), to: '/modules', icon: 'module' },

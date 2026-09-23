@@ -2,7 +2,7 @@
   <div class="">
     <div v-if="module" class="relative mt-15 py-16 lg:py-20 xl:py-24">
       <div
-        class="dark:to-highlighted/50 absolute top-0 left-1/2 -z-[5] h-full w-screen -translate-x-1/2 transform overflow-hidden bg-primary-500 bg-linear-to-r from-primary-500 via-primary-600 to-secondary-900/50 content-[''] dark:via-primary-500  dark:bg-primary-400  dark:from-primary-400 dark:via-primary-800 dark:to-secondary-200 content-['']"
+        class="dark:to-highlighted/50 absolute top-0 left-1/2 -z-5 h-full w-screen -translate-x-1/2 transform overflow-hidden bg-primary-500 bg-linear-to-r from-primary-500 via-primary-600 to-secondary-900/50 content-[''] dark:bg-transparent dark:from-elevated/75 dark:via-elevated/50 dark:to-elevated"
       >
         <UIcon
           name="i-solar-bug-bold"
