@@ -12,7 +12,7 @@
         <ModuleImage :module="module" size="md" />
         <div>
           <div class="text-xl font-bold md:text-4xl">
-            Get the Odoo 
+            Get the Odoo
             <span class="text-secondary">App</span>
           </div>
           <div class="flex gap-1">
@@ -67,7 +67,7 @@
             />
           </template>
         </UFormField>
-        <div class="flex flex-col justify-end">
+        <div class="flex flex-col justify-center gap-2 max-lg:justify-end">
           <UButton
             v-if="module?.githubUrl"
             color="info"

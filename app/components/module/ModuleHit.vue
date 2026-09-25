@@ -173,8 +173,11 @@ const { t } = useI18n()
 const localePath = useLocalePath()
 const module = computed(() => {
   const hits = props.moduleGrouped?.hits || []
-  return hits.reduce<typeof hits[number] | null>((latestModule, hit) => {
-    if (!latestModule || parseInt(hit.serie, 10) > parseInt(latestModule.serie, 10)) {
+  return hits.reduce<(typeof hits)[number] | null>((latestModule, hit) => {
+    if (
+      !latestModule ||
+      parseInt(hit.serie, 10) > parseInt(latestModule.serie, 10)
+    ) {
       return hit
     }
     return latestModule
@@ -182,7 +185,7 @@ const module = computed(() => {
 })
 const ui = computed(() => {
   const ui = {
-    root: 'w-full divide-none  max-sm:ring-0 dark:md:ring-neutral-800 max-sm:rounded-none max-sm:border-b max-sm:border-default max-md:pb-3 flex flex-col dark:[&_mark]:bg-secondary-700 [&_mark]:bg-secondary-200 [&_mark]:text-highlighted xl:min-h-64',
+    root: 'w-full divide-none  max-sm:ring-0  max-sm:rounded-none max-sm:border-b max-sm:border-default max-md:pb-3 flex flex-col dark:bg-elevated/50 dark:[&_mark]:bg-secondary-700 [&_mark]:bg-secondary-200 [&_mark]:text-highlighted xl:min-h-64',
     body: 'p-3 sm:p-4 py-0 sm:py-0 pb-4 sm:pb-4 flex-1 flex flex-col gap-3',
     header: 'flex items-center gap-3 p-3 sm:p-4 ',
     footer: 'p-3 sm:p-4',

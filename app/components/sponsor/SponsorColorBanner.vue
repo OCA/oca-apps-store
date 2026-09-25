@@ -1,7 +1,7 @@
 <template>
   <div class="relative pt-14 pb-1 md:pt-32 md:pb-10">
     <div
-      class="absolute top-0 left-1/2 -z-10 h-[120%] w-screen -translate-x-1/2 -skew-y-3 transform  opacity-5 dark:opacity-60 "
+      class="absolute top-0 left-1/2 -z-10 h-[120%] w-screen -translate-x-1/2 -skew-y-3 transform opacity-5"
       :class="bcgSponsorColor"
     />
     <div class="flex justify-between gap-1">
@@ -18,7 +18,7 @@
       <div class="hidden md:block">
         <UButton
           :href="buttonUrl"
-          :label="t('sponsors.become', { name: sponsorship?.name }) "
+          :label="t('sponsors.become', { name: sponsorship?.name })"
           color="neutral"
           variant="solid"
           icon="contribute"
@@ -37,20 +37,18 @@ const props = defineProps<{
   sponsorship: SponsorLevelsCollectionItem
 }>()
 
-
-const bcgSponsorColor = computed (() => {
-  switch(props.sponsorship.name) {
+const bcgSponsorColor = computed(() => {
+  switch (props.sponsorship.name) {
     case 'Platinum':
-      return 'bg-platinum opacity-10 dark:bg-transparent dark:bg-gradient-to-r dark:from-transparent dark:via-platinum dark:to-transparent';
-    case 'Gold': 
-      return 'bg-gold opacity-10 dark:bg-transparent dark:bg-gradient-to-r dark:from-transparent dark:via-gold dark:to-transparent ';
-    case 'Silver': 
-      return 'bg-silver opacity-10 dark:bg-transparent dark:bg-gradient-to-r dark:from-transparent dark:via-silver dark:to-transparent';
-    case 'Bronze': 
-      return 'bg-bronze opacity-10 dark:bg-transparent dark:bg-gradient-to-r dark:from-transparent dark:via-bronze dark:to-transparent';
-    default: 
-    return ''
-
+      return 'bg-platinum light:opacity-10 '
+    case 'Gold':
+      return 'bg-gold light:opacity-10 dark:bg-gold/75'
+    case 'Silver':
+      return 'bg-silver light:opacity-10 '
+    case 'Bronze':
+      return 'bg-bronze light:opacity-10 '
+    default:
+      return ''
   }
 })
 const buttonUrl = computed(() => {
@@ -66,7 +64,7 @@ const buttonUrl = computed(() => {
 
     case '4':
       return 'https://www.odoo-community.org/shop/26-spb-2026-oca-bronze-sponsorship-716964 '
-    
+
     default:
       return 'https://odoo-community.org/get-involved/become-a-sponsor'
   }

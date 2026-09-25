@@ -43,7 +43,7 @@
     <template #description>
       <slot name="description">
         <div>
-          <div class="flex flex-wrap gap-4 p-4 md:gap-6 md:pl-0 max-md:px-0">
+          <div class="flex flex-wrap gap-4 p-4 max-md:px-0 md:gap-6 md:pl-0">
             <template v-for="contact in company.contacts" :key="contact.name">
               <CompanyContact :contact="contact" company="company" />
             </template>
@@ -61,11 +61,14 @@
         <CompanyStats :company="company" />
       </div>
     </template>
-    <div v-if="company?.logoUrls?.l && company.sponsorship" class="pb-4 md:pb-0">
+    <div
+      v-if="company?.logoUrls?.l && company.sponsorship"
+      class="pb-4 md:pb-0"
+    >
       <nuxt-img
         :src="company.logoUrls?.l"
         :alt="company.logoUrls?.alt"
-        class="m-4 ml-0"
+        class="m-4 ml-0 dark:brightness-10 dark:grayscale dark:invert"
         sizes="128px md:300px"
       />
     </div>

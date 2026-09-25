@@ -12,12 +12,12 @@
   >
     <template #header>
       <div class="flex flex-col items-start justify-between">
-        <div class="max-md:m-1 m-4 ml-0 flex min-h-28 items-center">
+        <div class="m-4 ml-0 flex min-h-28 items-center max-md:m-1">
           <nuxt-img
             :src="sponsor?.logoUrls?.m"
             :alt="sponsor.name"
             sizes="128px md:180px"
-            class="md:max-h-28 md:max-w-64"
+            class="md:max-h-28 md:max-w-64 dark:brightness-10 dark:grayscale dark:invert"
             fit="contain"
             loading="lazy"
             quality="80"
@@ -75,7 +75,8 @@
         </div>
         <div class="flex items-center space-x-1 md:space-x-2">
           <UIcon name="award" class="text-primary" />
-          <span class="text-sm">{{ $t('company.stats.collaboration_index') }}:
+          <span class="text-sm"
+            >{{ $t('company.stats.collaboration_index') }}:
             <span class="text-secondary">{{ sponsor.collaborationIndex }}</span>
           </span>
         </div>

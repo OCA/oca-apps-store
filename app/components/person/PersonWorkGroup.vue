@@ -11,7 +11,11 @@
   >
     <template #header v-if="group.name">
       <div class="py-4 text-center">
-        <UAvatar icon="community" class="mr-2 mb-0 text-secondary" size="3xl" />
+        <UAvatar
+          icon="community"
+          class="mr-2 mb-0 text-secondary dark:bg-primary-700"
+          size="3xl"
+        />
       </div>
 
       <h3 class="text-center font-bold text-primary">{{ group.name }}</h3>
@@ -23,7 +27,6 @@
         </div>
       </div>
     </template>
-    
   </UPageCard>
 </template>
 <script setup lang="ts">

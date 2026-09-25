@@ -8,11 +8,11 @@
     <template #header>
       <div class="flex h-full flex-col items-end justify-between">
         <div class="flex w-full items-center justify-between gap-4">
-          <nuxt-img
+          <NuxtImg
             v-if="sponsorLevel"
             :src="company?.logoUrls?.m"
             alt="Logo"
-            class="ml-0 max-h-20 rounded-md object-contain p-4"
+            class="ml-0 max-h-20 max-w-48 rounded-md object-contain p-4 dark:brightness-10 dark:grayscale dark:invert"
             sizes="100px md:128px"
           />
           <div class="flex flex-col items-end justify-end gap-2">
@@ -76,7 +76,9 @@
           <div class="flex items-start space-x-1 md:space-x-2">
             <UIcon name="ci:users-group" class="text-primary" />
             <span class="text-sm">
-              <span class="text-secondary">{{ company.contributorsCount }}</span>
+              <span class="text-secondary">{{
+                company.contributorsCount
+              }}</span>
               {{ $t('company.stats.contributors') }}
             </span>
           </div>
@@ -109,10 +111,9 @@ const onClick = (sponsorLevel: any) => {
 const { $sponsor } = useNuxtApp()
 const sponsorLevel = $sponsor.getSponsorLevel(props.company)
 
-
 const ui = computed(() => {
   const baseUi = {
-    root: ' ring ring-default hover:shadow-lg transition-shadow duration-300 ease-in-out flex flex-col ',
+    root: ' ring ring-default hover:shadow-lg transition-shadow duration-300 ease-in-out flex flex-col dark:bg-elevated/50',
     header:
       'border-b-0 sm:px-4 pb-0 sm:pb-0 j-full flex-1 justify-end align-bottom  ',
     body: 'pb-2 sm:pb-3 pt-0 sm:pt-1 sm:px-4 border-b-1 border-default flex-1 ',
